@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Box QR</title>
+
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+  <style>
+    :root {
+      --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+      --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
+      --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.1rem);
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --radius-sm: 0.375rem;
+      --radius-md: 0.75rem;
+      --radius-lg: 1rem;
+      --radius-xl: 1.25rem;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.24);
+      --shadow-md: 0 8px 24px rgba(0,0,0,.28);
+      --shadow-lg: 0 20px 40px rgba(0,0,0,.35);
+      --font-body: 'Satoshi', system-ui, sans-serif;
+    }
+    [data-theme="dark"] {
+      --color-bg: #0b1020;
+      --color-surface: #121a2f;
+      --color-surface-2: #18223b;
+      --color-surface-3: #1f2c4a;
+      --color-border: rgba(255,255,255,.10);
+      --color-divider: rgba(255,255,255,.08);
+      --color-text: #edf2ff;
+      --color-text-muted: #9aa7c7;
+      --color-text-faint: #7381a4;
+      --color-primary: #59a8ff;
+      --color-primary-hover: #7ab9ff;
+      --color-success: #39c48d;
+      --color-warning: #ffb84d;
+      --color-danger: #ff6b81;
+      --color-accent: #8f7dff;
+      --color-chip: rgba(89,168,255,.14);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      background:
+        radial-gradient(circle at top right, rgba(143,125,255,.18), transparent 25%),
+        radial-gradient(circle at top left, rgba(57,196,141,.12), transparent 20%),
+        linear-gradient(180deg, #0a0f1d 0%, #0b1020 100%);
+      color: var(--color-text);
+      line-height: 1.5;
+      padding: var(--space-4);
+    }
+    .app-shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      gap: var(--space-4);
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: var(--space-4);
+      align-items: stretch;
+    }
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(12px);
+    }
+    .hero-main {
+      padding: var(--space-8);
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .hero-side {
+      padding: var(--space-6);
+      display: grid;
+      gap: var(--space-4);
+      align-content: center;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      background: rgba(89,168,255,.08);
+      border: 1px solid rgba(89,168,255,.18);
+      padding: .45rem .8rem;
+      border-radius: 999px;
+      width: fit-content;
+    }
+    h1 {
+      font-size: var(--text-xl);
+      margin: var(--space-4) 0 var(--space-3);
+      line-height: 1.1;
+    }
+    .hero p, .muted { color: var(--color-text-muted); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: var(--space-3);
+    }
+    .stat {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+    }
+    .stat-label {
+      color: var(--color-text-muted);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .stat-value {
+      margin-top: .35rem;
+      font-size: var(--text-lg);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: var(--space-4);
+      align-items: start;
+    }
+    .card { padding: var(--space-5); }
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .section-title h2, .section-title h3 {
+      margin: 0;
+      font-size: var(--text-lg);
+      line-height: 1.15;
+    }
+    .badge {
+      font-size: var(--text-xs);
+      color: var(--color-primary);
+      background: var(--color-chip);
+      border: 1px solid rgba(89,168,255,.18);
+      padding: .35rem .7rem;
+      border-radius: 999px;
+    }
+    .stack { display: grid; gap: var(--space-4); }
+    .controls { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+    button, .button-like {
+      min-height: 44px;
+      border-radius: var(--radius-md);
+      padding: .8rem 1rem;
+      border: 1px solid transparent;
+      background: var(--color-surface-2);
+      color: var(--color-text);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .btn-primary {
+      background: linear-gradient(180deg, var(--color-primary-hover), var(--color-primary));
+      color: #08111f;
+      box-shadow: 0 10px 22px rgba(89,168,255,.20);
+    }
+    .btn-success {
+      background: linear-gradient(180deg, #52d79f, var(--color-success));
+      color: #061710;
+      box-shadow: 0 10px 22px rgba(57,196,141,.16);
+    }
+    .btn-danger {
+      background: rgba(255,107,129,.12);
+      border-color: rgba(255,107,129,.24);
+      color: #ff98a7;
+    }
+    .btn-outline {
+      border-color: var(--color-border);
+      background: rgba(255,255,255,.02);
+    }
+    input, textarea {
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface-2);
+      color: var(--color-text);
+      padding: .9rem 1rem;
+      outline: none;
+    }
+    input::placeholder, textarea::placeholder { color: var(--color-text-faint); }
+    input:focus, textarea:focus { border-color: rgba(89,168,255,.55); box-shadow: 0 0 0 3px rgba(89,168,255,.14); }
+    textarea { min-height: 180px; resize: vertical; }
+    label {
+      display: block;
+      margin-bottom: .45rem;
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--color-text-muted);
+    }
+    .field { display: grid; gap: .45rem; }
+    #formAggiungi, #scanner {
+      display: none;
+      margin-top: var(--space-4);
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+    }
+    #scanner { text-align: center; }
+    video, canvas {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto var(--space-3);
+      border-radius: var(--radius-md);
+      background: #000;
+    }
+    #qrOutput, #jsonbin-status {
+      margin-top: var(--space-3);
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+    }
+    .search-box { position: relative; }
+    .search-box i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-faint);
+      pointer-events: none;
+    }
+    .search-box input { padding-left: 2.6rem; }
+    #cartoniList {
+      display: grid;
+      gap: var(--space-3);
+      content-visibility: auto;
+    }
+    .cartone {
+      background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01));
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-4);
+      align-items: start;
+    }
+    .cartone-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .qr-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      border-radius: 999px;
+      background: rgba(143,125,255,.12);
+      color: #c9c1ff;
+      border: 1px solid rgba(143,125,255,.18);
+      padding: .35rem .75rem;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    .items-list { display: grid; gap: .45rem; }
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      color: var(--color-text);
+      font-size: var(--text-sm);
+    }
+    .item-row i { color: var(--color-success); font-size: .85rem; }
+    .empty-state {
+      text-align: center;
+      padding: var(--space-8);
+      color: var(--color-text-muted);
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,.02);
+    }
+    .helper {
+      font-size: var(--text-xs);
+      color: var(--color-text-faint);
+      margin-top: .3rem;
+    }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: .85rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .logo svg { width: 34px; height: 34px; color: var(--color-primary); }
+    .top-actions {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+    @media (max-width: 920px) {
+      .hero, .layout { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: 1fr; }
+      .cartone { grid-template-columns: 1fr; }
+    }
+    .toast-container {
+      position: fixed;
+      right: 1.5rem;
+      bottom: 1.5rem;
+      display: grid;
+      gap: 0.5rem;
+      z-index: 9999;
+    }
+    .toast {
+      min-width: 220px;
+      max-width: 320px;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-md);
+      background: var(--color-surface-3);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      font-size: var(--text-sm);
+      opacity: 0;
+      transform: translateY(10px);
+      animation: toast-in 0.2s ease-out forwards;
+    }
+    .toast.success {
+      border-color: rgba(57,196,141,.6);
+      background: rgba(57,196,141,.12);
+    }
+    .toast.error {
+      border-color: rgba(255,107,129,.6);
+      background: rgba(255,107,129,.12);
+    }
+    .toast i { margin-top: 0.1rem; }
+    .toast-close {
+      margin-left: auto;
+      border: none;
+      background: transparent;
+      color: var(--color-text-faint);
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes toast-out {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(10px); }
+    }
+  </style>
+</head>
+<body>
+<main class="app-shell">
+  <section class="hero">
+    <div class="panel hero-main">
+      <div>
+        <div class="eyebrow"><i class="fas fa-box-archive"></i> Archivio fisico + mappa digitale</div>
+        <h1>Smart Box QR</h1>
+        <p>Assegna un QR code a ogni cartone fisico, registra il contenuto nell’app e ritrova subito cosa c’è dentro senza aprire il box.</p>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Cartoni registrati</div>
+          <div class="stat-value" id="statCartoni">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Oggetti indicizzati</div>
+          <div class="stat-value" id="statOggetti">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Ultimo backup</div>
+          <div class="stat-value" id="statBackup">-</div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="panel hero-side">
+      <div class="logo">
+        <svg viewBox="0 0 48 48" fill="none" aria-label="Logo Smart Box QR">
+          <rect x="6" y="10" width="24" height="24" rx="6" stroke="currentColor" stroke-width="3"></rect>
+          <path d="M18 10V6h24v24h-4" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+          <path d="M14 18h8M14 24h8M34 16h4M34 22h4M34 28h4" stroke="currentColor" stroke-width="3" stroke-linecap="round"></path>
+        </svg>
+        <span>Scansiona. Trova. Organizza.</span>
+      </div>
+      <p class="muted">Pensata per contenitori, cartoni e box con QR: il codice identifica il contenitore, il testo descrive il contenuto interno.</p>
+      <div class="top-actions">
+        <button class="btn-primary" onclick="mostraForm('aggiungi')"><i class="fas fa-plus"></i> Nuovo box</button>
+        <button class="btn-outline" id="scanBtnMain" onclick="scansionaQR('main')"><i class="fas fa-qrcode"></i> Scansiona QR</button>
+      </div>
+    </aside>
+  </section>
+
+  <section class="layout">
+    <aside class="stack">
+      <div class="panel card">
+        <div class="section-title">
+          <h2>Gestione box</h2>
+          <span class="badge">Locale + manuale</span>
+        </div>
+        <div class="controls">
+          <button class="btn-primary" onclick="mostraForm('aggiungi')"><i class="fas fa-box-open"></i> Aggiungi box</button>
+          <button class="btn-outline" onclick="document.getElementById('importCSV').click()"><i class="fas fa-upload"></i> Importa CSV</button>
+        </div>
+        <input type="file" id="importCSV" accept=".csv" style="display:none;" onchange="importaCSV(this.files[0])">
+        <div id="formAggiungi">
+          <div class="section-title">
+            <h3 id="formTitle">Aggiungi nuovo box</h3>
+          </div>
+          <div class="stack">
+            <div class="field">
+              <label for="qrCode">Codice QR</label>
+              <input type="text" id="qrCode" placeholder="Es. BOX-0001">
+            </div>
+            <button class="btn-outline" id="scanBtnForm" onclick="scansionaQR('form')"><i class="fas fa-camera"></i> Scansiona QR nel form</button>
+            <div class="field">
+              <label for="contenuto">Contenuto del box</label>
+              <textarea id="contenuto" placeholder="Un oggetto per riga&#10;es. Cavi HDMI&#10;Lampadine LED&#10;Manuali"></textarea>
+              <div class="helper">Ogni riga viene salvata come oggetto separato.</div>
+            </div>
+            <div class="controls">
+              <button class="btn-success" onclick="salvaCartone()"><i class="fas fa-save"></i> Salva box</button>
+              <button class="btn-outline" onclick="chiudiForm()"><i class="fas fa-xmark"></i> Chiudi</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="scanner">
+          <video id="video" autoplay playsinline></video>
+          <canvas id="canvas" width="420" height="280"></canvas>
+          <div class="controls" style="justify-content:center;">
+            <button class="btn-danger" onclick="fermaScanner()"><i class="fas fa-stop"></i> Ferma scansione</button>
+          </div>
+        </div>
+        <div id="qrOutput"></div>
+      </div>
+
+      <div class="panel card">
+        <div class="section-title">
+          <h2>Backup Firestore</h2>
+          <span class="badge">Manuale</span>
+        </div>
+        <div class="stack">
+          <div class="field">
+            <label for="jsonbin-id">ID backup (documento Firestore)</label>
+            <input type="text" id="jsonbin-id" placeholder="Es. casa-cantina-2026">
+          </div>
+          <div class="controls">
+            <button class="btn-success" id="btn-save-jsonbin"><i class="fas fa-cloud-arrow-up"></i> Salva su Firestore</button>
+            <button class="btn-outline" id="btn-load-jsonbin"><i class="fas fa-cloud-arrow-down"></i> Carica da Firestore</button>
+          </div>
+          <div class="helper">Il backup è manuale. Il dato è salvato in un singolo documento Firestore.</div>
+          <div id="jsonbin-status"></div>
+        </div>
+      </div>
+    </aside>
+
+    <section class="stack">
+      <div class="panel	card">
+        <div class="section-title">
+          <h2>Ricerca contenuto</h2>
+          <span class="badge">Ricerca live</span>
+        </div>
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchInput" placeholder="Cerca un oggetto, es. lampadine" oninput="cercaOggetti()">
+        </div>
+      </div>
+      <div class="panel card">
+        <div class="section-title">
+          <h2>Box virtuali</h2>
+          <span class="badge" id="listBadge">0 box</span>
+        </div>
+        <div id="cartoniList"></div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBfafwqg57H32R_vR4J38P84MleiZASu6k",
+    authDomain: "casa-cantina-2026.firebaseapp.com",
+    projectId: "casa-cantina-2026",
+    storageBucket: "casa-cantina-2026.firebasestorage.app",
+    messagingSenderId: "399720186744",
+    appId: "1:399720186744:web:89f67d5079622534e0fe8d",
+    measurementId: "G-M8TK0R9YTP"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app); // Firestore setup ufficiale [web:4][web:65]
+
+  let cartoni = JSON.parse(localStorage.getItem('cartoni')) || {};
+  let video = document.getElementById('video');
+  let stream = null;
+  let modoForm = 'aggiungi';
+  let scanMode = '';
+  let scanning = false;
+  let ultimoBackup = null;
+  let qrInModifica = '';
+  const JSONBIN_CONFIG_KEY = 'smartBoxQR_firestore_config';
+
+  function showToast(message, type = 'success', timeout = 3000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+      <i class="fas ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+      <div>${escapeHtml(message)}</div>
+      <button class="toast-close" aria-label="Chiudi">&times;</button>
+    `;
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+      toast.style.animation = 'toast-out 0.2s ease-in forwards';
+      setTimeout(() => toast.remove(), 200);
+    });
+    container.appendChild(toast);
+    setTimeout(() => {
+      if (!toast.isConnected) return;
+      toast.style.animation = 'toast-out 0.2s ease-in forwards';
+      setTimeout(() => toast.remove(), 200);
+    }, timeout);
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function chiudiForm() {
+    document.getElementById('formAggiungi').style.display = 'none';
+    qrInModifica = '';
+  }
+
+  function mostraForm(modo, qrCode = '') {
+    if (scanning) fermaScanner();
+    modoForm = modo;
+    document.getElementById('formAggiungi').style.display = 'block';
+    document.getElementById('formTitle').innerText = modo === 'aggiungi' ? 'Aggiungi nuovo box' : 'Modifica box';
+
+    if (modo === 'modifica' && qrCode) {
+      qrInModifica = qrCode;
+      document.getElementById('qrCode').value = qrCode;
+      document.getElementById('contenuto').value = (cartoni[qrCode] || []).join('\n');
+    } else {
+      qrInModifica = '';
+      document.getElementById('qrCode').value = '';
+      document.getElementById('contenuto').value = '';
+    }
+  }
+
+  function salvaCartone() {
+    const qrCode = document.getElementById('qrCode').value.trim();
+    const contenuto = document.getElementById('contenuto').value
+      .split('\n')
+      .map(item => item.trim())
+      .filter(item => item !== '');
+
+    if (!qrCode || contenuto.length === 0) {
+      showToast('Inserisci un codice QR e almeno un elemento del contenuto.', 'error');
+      return;
+    }
+
+    if (modoForm === 'modifica' && qrInModifica && qrInModifica !== qrCode) {
+      delete cartoni[qrInModifica];
+    }
+
+    cartoni[qrCode] = contenuto;
+    localStorage.setItem('cartoni', JSON.stringify(cartoni));
+    aggiornaLista();
+    aggiornaStatistiche();
+    document.getElementById('formAggiungi').style.display = 'none';
+    qrInModifica = '';
+    showToast(
+      modoForm === 'aggiungi'
+        ? 'Box salvato! QR: ' + qrCode
+        : 'Box modificato con successo.',
+      'success'
+    );
+  }
+
+  function eliminaCartone(qrCode) {
+    if (confirm(`Vuoi eliminare il box ${qrCode}?`)) {
+      delete cartoni[qrCode];
+      localStorage.setItem('cartoni', JSON.stringify(cartoni));
+      aggiornaLista();
+      aggiornaStatistiche();
+      showToast('Box eliminato: ' + qrCode, 'success');
+    }
+  }
+
+  function aggiornaStatistiche() {
+    const qrList = Object.keys(cartoni);
+    const totaleOggetti = qrList.reduce((sum, qr) => sum + (Array.isArray(cartoni[qr]) ? cartoni[qr].length : 0), 0);
+    document.getElementById('statCartoni').textContent = qrList.length;
+    document.getElementById('statOggetti').textContent = totaleOggetti;
+    document.getElementById('listBadge').textContent = qrList.length + (qrList.length === 1 ? ' box' : ' box');
+    document.getElementById('statBackup').textContent = ultimoBackup
+      ? new Date(ultimoBackup).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+      : '-';
+  }
+
+  function aggiornaLista(filtro = '') {
+    const lista = document.getElementById('cartoniList');
+    lista.innerHTML = '';
+    const qrCodes = Object.keys(cartoni).sort();
+    let risultati = 0;
+
+    for (const qr of qrCodes) {
+      const contenuto = cartoni[qr] || [];
+      const match =
+        filtro === '' ||
+        qr.toLowerCase().includes(filtro.toLowerCase()) ||
+        contenuto.some(item => item.toLowerCase().includes(filtro.toLowerCase()));
+      if (!match) continue;
+      risultati++;
+
+      const div = document.createElement('div');
+      div.className = 'cartone';
+      div.innerHTML = `
+        <div>
+          <div class="cartone-header">
+            <span class="qr-pill"><i class="fas fa-qrcode"></i> ${escapeHtml(qr)}</span>
+            <span class="muted">${contenuto.length} elementi</span>
+          </div>
+          <div class="items-list">
+            ${contenuto
+              .map(
+                item =>
+                  `<div class="item-row"><i class="fas fa-check-circle"></i><span>${escapeHtml(item)}</span></div>`
+              )
+              .join('')}
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn-outline" data-qr="${escapeHtml(qr)}"><i class="fas fa-pen"></i> Modifica</button>
+          <button class="btn-danger" data-qr="${escapeHtml(qr)}"><i class="fas fa-trash"></i> Elimina</button>
+        </div>
+      `;
+
+      const btnMod = div.querySelector('.btn-outline[data-qr]');
+      const btnDel = div.querySelector('.btn-danger[data-qr]');
+      btnMod.addEventListener('click', () => mostraForm('modifica', btnMod.dataset.qr));
+      btnDel.addEventListener('click', () => eliminaCartone(btnDel.dataset.qr));
+      lista.appendChild(div);
+    }
+
+    if (risultati === 0) {
+      lista.innerHTML = `<div class="empty-state"><i class="fas fa-box-open" style="font-size:2rem; margin-bottom: .75rem; color: var(--color-text-faint);"></i><div>Nessun box trovato.</div><div class="helper">Aggiungi un nuovo box oppure modifica il testo di ricerca.</div></div>`;
+    }
+  }
+
+  function cercaOggetti() {
+    const filtro = document.getElementById('searchInput').value;
+    aggiornaLista(filtro);
+  }
+
+  function disableScanButtons() {
+    document.getElementById('scanBtnMain').disabled = true;
+    document.getElementById('scanBtnForm').disabled = true;
+  }
+
+  function enableScanButtons() {
+    document.getElementById('scanBtnMain').disabled = false;
+    document.getElementById('scanBtnForm').disabled = false;
+  }
+
+  function scansionaQR(mode) {
+    if (scanning) return;
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+      video.srcObject = null;
+    }
+    scanMode = mode;
+    scanning = true;
+    disableScanButtons();
+    document.getElementById('scanner').style.display = 'block';
+
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: 'environment' } })
+      .then(function (mediaStream) {
+        if (!scanning) {
+          mediaStream.getTracks().forEach(track => track.stop());
+          return;
+        }
+        stream = mediaStream;
+        video.srcObject = stream;
+        video.play();
+        requestAnimationFrame(tick);
+      })
+      .catch(function (err) {
+        console.error('Errore nell\'accesso alla fotocamera:', err);
+        showToast('Errore fotocamera: ' + err, 'error');
+        fermaScanner();
+      });
+
+    function tick() {
+      if (!scanning) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height); // uso standard jsQR da CDN [web:24]
+        if (code) {
+          const qrText = code.data.trim();
+          document.getElementById('qrOutput').innerHTML =
+            '<strong>QR rilevato:</strong> ' + escapeHtml(qrText);
+          if (scanMode === 'form') {
+            document.getElementById('qrCode').value = qrText;
+          } else if (scanMode === 'main') {
+            if (cartoni[qrText]) {
+              document.getElementById('searchInput').value = qrText;
+              aggiornaLista(qrText);
+            } else {
+              mostraForm('aggiungi', qrText);
+              document.getElementById('qrCode').value = qrText;
+            }
+          }
+          fermaScanner();
+          return;
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+  }
+
+  function fermaScanner() {
+    scanning = false;
+    enableScanButtons();
+    document.getElementById('scanner').style.display = 'none';
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+    video.srcObject = null;
+  }
+
+  function importaCSV(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const testo = e.target.result;
+      const righe = testo.split(/\r?\n/).filter(Boolean);
+      righe.forEach(riga => {
+        const parti = riga.split(';');
+        if (parti.length >= 2) {
+          const qr = parti[0].trim();
+          const contenuti = parti
+            .slice(1)
+            .join(';')
+            .split('|')
+            .map(x => x.trim())
+            .filter(Boolean);
+          if (qr && contenuti.length) cartoni[qr] = contenuti;
+        }
+      });
+      localStorage.setItem('cartoni', JSON.stringify(cartoni));
+      aggiornaLista();
+      aggiornaStatistiche();
+      showToast('CSV importato con successo.', 'success');
+    };
+    reader.readAsText(file);
+  }
+
+  function getCurrentDataForBackup() {
+    return {
+      app: 'Smart Box QR',
+      version: 1,
+      lastUpdated: new Date().toISOString(),
+      cartoni: cartoni
+    };
+  }
+
+  function applyDataFromBackup(data) {
+    if (!data || typeof data !== 'object' || !data.cartoni || typeof data.cartoni !== 'object') {
+      showToast('Formato dati Firestore non valido.', 'error');
+      return;
+    }
+    cartoni = data.cartoni;
+    ultimoBackup = data.lastUpdated || new Date().toISOString();
+    localStorage.setItem('cartoni', JSON.stringify(cartoni));
+    aggiornaLista();
+    aggiornaStatistiche();
+  }
+
+  function loadJsonBinConfig() {
+    try {
+      const raw = localStorage.getItem(JSONBIN_CONFIG_KEY);
+      if (!raw) return { binId: '' };
+      return JSON.parse(raw);
+    } catch (e) {
+      return { binId: '' };
+    }
+  }
+
+  function saveJsonBinConfig(cfg) {
+    localStorage.setItem(JSONBIN_CONFIG_KEY, JSON.stringify(cfg));
+  }
+
+  function setJsonBinStatus(msg, isError = false) {
+    const el = document.getElementById('jsonbin-status');
+    el.textContent = msg;
+    el.style.color = isError ? '#ff98a7' : 'var(--color-text-muted)';
+  }
+
+  async function saveToJsonBin() {
+    const binId = document.getElementById('jsonbin-id').value.trim() || 'default-backup-id';
+    const payload = getCurrentDataForBackup();
+    try {
+      setJsonBinStatus('Salvataggio su Firestore in corso...');
+      const docRef = doc(db, 'smartBoxQR', binId);
+      await setDoc(docRef, payload); // pattern setDoc ufficiale [web:65][web:34]
+      ultimoBackup = payload.lastUpdated;
+      aggiornaStatistiche();
+      saveJsonBinConfig({ binId });
+      setJsonBinStatus('Backup salvato su Firestore.');
+      showToast('Backup Firestore salvato.', 'success');
+    } catch (err) {
+      console.error(err);
+      setJsonBinStatus('Errore durante il salvataggio su Firestore.', true);
+      showToast('Errore Firestore durante il salvataggio.', 'error');
+    }
+  }
+
+  async function loadFromJsonBin() {
+    const binId = document.getElementById('jsonbin-id').value.trim() || 'default-backup-id';
+    try {
+      setJsonBinStatus('Caricamento da Firestore in corso...');
+      const docRef = doc(db, 'smartBoxQR', binId);
+      const snap = await getDoc(docRef);
+      if (!snap.exists()) {
+        setJsonBinStatus('Nessun backup trovato in Firestore per questo ID.', true);
+        showToast('Nessun backup Firestore per questo ID.', 'error');
+        return;
+      }
+      const data = snap.data();
+      applyDataFromBackup(data);
+      saveJsonBinConfig({ binId });
+      setJsonBinStatus('Dati caricati correttamente da Firestore.');
+      showToast('Dati caricati da Firestore.', 'success');
+    } catch (err) {
+      console.error(err);
+      setJsonBinStatus('Errore durante il caricamento da Firestore.', true);
+      showToast('Errore Firestore durante il caricamento.', 'error');
+    }
+  }
+
+  window.mostraForm = mostraForm;
+  window.chiudiForm = chiudiForm;
+  window.salvaCartone = salvaCartone;
+  window.eliminaCartone = eliminaCartone;
+  window.cercaOggetti = cercaOggetti;
+  window.scansionaQR = scansionaQR;
+  window.fermaScanner = fermaScanner;
+  window.importaCSV = importaCSV;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const cfg = loadJsonBinConfig();
+    document.getElementById('jsonbin-id').value = cfg.binId || '';
+    document.getElementById('btn-save-jsonbin').addEventListener('click', saveToJsonBin);
+    document.getElementById('btn-load-jsonbin').addEventListener('click', loadFromJsonBin);
+    aggiornaLista();
+    aggiornaStatistiche();
+  });
+</script>
+</body>
+</html>
